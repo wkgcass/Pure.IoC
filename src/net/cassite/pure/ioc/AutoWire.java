@@ -17,14 +17,14 @@ import net.cassite.style.Style;
  */
 public abstract class AutoWire extends Style {
 
-        private static final Logger logger = Logger.getLogger(AutoWire.class);
+        private static final Logger LOGGER = Logger.getLogger(AutoWire.class);
 
         protected AutoWire() {
-                logger.debug("Constructing object " + this);
+                LOGGER.debug("Constructing object " + this);
 
                 wire(this);
 
-                logger.debug("Finished Constructing " + this);
+                LOGGER.debug("Finished Constructing " + this);
         }
 
         /**
@@ -46,18 +46,17 @@ public abstract class AutoWire extends Style {
          *                the object to wire
          */
         public static void wire(Object o) {
-                logger.debug("Start Wiring object " + o);
+                LOGGER.debug("Start Wiring object " + o);
                 IOCController.registerSingleton(o);
-                $(cls(o).setters()).forEach(m -> {
-                        IOCController.invokeSetter(o, m);
-                });
-                logger.debug("Finished Wiring " + o);
+                $(cls(o).setters()).forEach(m -> IOCController.invokeSetter(o, m));
+                LOGGER.debug("Finished Wiring " + o);
 
-                logger.debug("Start Invoking methods of object " + o);
+                LOGGER.debug("Start Invoking methods of object " + o);
                 $(cls(o).allMethods()).forEach(m -> {
-                        if (m.annotation(Invoke.class) != null && !m.isStatic())
+                        if (m.annotation(Invoke.class) != null && !m.isStatic()) {
                                 IOCController.invokeMethod(m, (Object) o);
+                        }
                 });
-                logger.debug("Finished Invoking methods of object " + o);
+                LOGGER.debug("Finished Invoking methods of object " + o);
         }
 }

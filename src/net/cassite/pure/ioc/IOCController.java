@@ -70,10 +70,7 @@ import net.cassite.style.reflect.*;
  */
 public abstract class IOCController extends Style {
 
-        private static Logger logger = Logger.getLogger(IOCController.class);
-
-        protected IOCController() {
-        }
+        private static final Logger LOGGER = Logger.getLogger(IOCController.class);
 
         // ===========================
         // ==========handlers=========
@@ -118,6 +115,9 @@ public abstract class IOCController extends Style {
          */
         private static Map<String, MemberSup<?>> variables = new ConcurrentHashMap<String, MemberSup<?>>();
 
+        protected IOCController() {
+        }
+
         /**
          * get instance by class. <br>
          * this method would check TypeHandlerChain to generate instance.
@@ -126,7 +126,7 @@ public abstract class IOCController extends Style {
          * @return
          */
         protected static Object get(Class<?> cls) {
-                logger.debug("Invoking get(Class) to get instance of " + cls);
+                LOGGER.debug("Invoking get(Class) to get instance of " + cls);
                 TypeHandlerChain chain = new TypeHandlerChain(typeAnnotationHandlers, cls.getAnnotations());
                 return chain.next().handle(cls, chain);
         }
@@ -144,7 +144,7 @@ public abstract class IOCController extends Style {
          */
         @SuppressWarnings("unchecked")
         protected static void invokeSetter(Object target, MethodSupport<?, ?> m) {
-                logger.debug("Wiring object " + target + "'s method " + m);
+                LOGGER.debug("Wiring object " + target + "'s method " + m);
 
                 List<FieldSupport<?, Object>> fields = cls(target).allFields();
 
@@ -155,20 +155,22 @@ public abstract class IOCController extends Style {
 
                 // try to get field and its annotations ( ignore field name case
                 // )
-                If($(fields).findOne(f -> f.name().equalsIgnoreCase(fieldName)), (found) -> {
-                        for (Annotation ann : found.getMember().getAnnotations())
+                If($(fields).findOne(f -> f.name().equalsIgnoreCase(fieldName)), found -> {
+                        for (Annotation ann : found.getMember().getAnnotations()) {
                                 annset.add(ann);
+                        }
                 }).End();
 
                 // try to get method annotations
-                for (Annotation ann : m.getMember().getAnnotations())
+                for (Annotation ann : m.getMember().getAnnotations()) {
                         annset.add(ann);
+                }
                 // parameter value annotations
                 for (Annotation ann : m.getMember().getParameterAnnotations()[0]) {
                         annset.add(ann);
                 }
 
-                logger.debug("With Annotations: " + annset);
+                LOGGER.debug("With Annotations: " + annset);
 
                 // handle
                 SetterHandlerChain chain = new SetterHandlerChain(setterAnnotationHandlers, annset);
@@ -200,25 +202,25 @@ public abstract class IOCController extends Style {
          * @see ParamHandlerChain
          */
         protected Object constructObject(@SuppressWarnings("rawtypes") Class cls) {
-                logger.debug("Invoking constructObject(Class) to get instance of type " + cls);
+                LOGGER.debug("Invoking constructObject(Class) to get instance of type " + cls);
                 Set<Annotation> set = new HashSet<Annotation>();
                 for (Constructor<?> cons : cls.getConstructors()) {
                         for (Annotation ann : cons.getAnnotations()) {
                                 set.add(ann);
                         }
                 }
-                logger.debug("--gathered annotatiosn are " + set);
+                LOGGER.debug("--gathered annotatiosn are " + set);
                 ConstructorFilterChain chain = new ConstructorFilterChain(constructorFilters, set);
                 @SuppressWarnings("unchecked")
                 ConstructorSup<?> con = chain.next().handle(cls(cls).constructors(), chain);
 
-                logger.debug("--retrieved constructor is " + con);
+                LOGGER.debug("--retrieved constructor is " + con);
 
                 Object[] pv = new Object[con.argCount()];
                 for (int i = 0; i < pv.length; ++i) {
                         ParamHandlerChain chain2 = new ParamHandlerChain(paramAnnotationHandlers, con.getMember().getParameterAnnotations()[i]);
                         pv[i] = chain2.next().handle(con, con.argTypes()[i], con.getMember().getParameterAnnotations()[i], chain2);
-                        logger.debug("--parameter at index " + i + " is " + pv[i]);
+                        LOGGER.debug("--parameter at index " + i + " is " + pv[i]);
                 }
                 return construct(con, pv);
         }
@@ -244,13 +246,14 @@ public abstract class IOCController extends Style {
          */
         @SuppressWarnings("unchecked")
         protected Object getObject(@SuppressWarnings("rawtypes") Class cls) {
-                logger.debug("Invoking getObject(Class) to get instance of type " + cls);
+                LOGGER.debug("Invoking getObject(Class) to get instance of type " + cls);
                 if (cls.isAnnotationPresent(Singleton.class)) {
-                        logger.debug("--is singleton");
-                        if (singletons.containsKey(cls))
+                        LOGGER.debug("--is singleton");
+                        if (singletons.containsKey(cls)) {
                                 return singletons.get(cls);
-                        else
+                        } else {
                                 return constructObject(cls);
+                        }
                 } else
                         return constructObject(cls);
         }
@@ -268,7 +271,7 @@ public abstract class IOCController extends Style {
          */
         @SuppressWarnings({ "unchecked", "rawtypes" })
         protected static Object invokeMethod(MethodSupport method, Object target) {
-                logger.debug("Invoking method " + method + " of object " + target);
+                LOGGER.debug("Invoking method " + method + " of object " + target);
 
                 Object[] pv = new Object[method.argCount()];
                 for (int i = 0; i < pv.length; ++i) {
@@ -283,22 +286,22 @@ public abstract class IOCController extends Style {
         // ================================
 
         public static void register(ConstructorFilter ah) {
-                logger.debug("registering " + ah);
+                LOGGER.debug("registering " + ah);
                 constructorFilters.add(ah);
         }
 
         public static void register(ParamAnnotationHandler ah) {
-                logger.debug("registering " + ah);
+                LOGGER.debug("registering " + ah);
                 paramAnnotationHandlers.add(ah);
         }
 
         public static void register(SetterAnnotationHandler ah) {
-                logger.debug("registering " + ah);
+                LOGGER.debug("registering " + ah);
                 setterAnnotationHandlers.add(ah);
         }
 
         public static void register(TypeAnnotationHandler ah) {
-                logger.debug("registering " + ah);
+                LOGGER.debug("registering " + ah);
                 typeAnnotationHandlers.add(ah);
         }
 
@@ -307,10 +310,12 @@ public abstract class IOCController extends Style {
         }
 
         static void registerSingleton(Object instance) {
-                if (singletons.containsKey(instance.getClass()))
+                if (singletons.containsKey(instance.getClass())) {
                         throw new ConstructingMultiSingletonException(instance.getClass());
-                if (null != instance.getClass().getAnnotation(Singleton.class))
+                }
+                if (null != instance.getClass().getAnnotation(Singleton.class)) {
                         singletons.put(instance.getClass(), instance);
+                }
         }
 
         public static void registerVariable(String name, Member m) {
@@ -323,10 +328,8 @@ public abstract class IOCController extends Style {
 
         @SuppressWarnings("unchecked")
         protected <T> T retrieveConstant(Class<T> type) {
-                logger.debug("Retrieving Constant with type " + type);
-                return (T) $(constants.values()).forEach(o -> {
-                        return type.isInstance(o) ? BreakWithResult(o) : null;
-                });
+                LOGGER.debug("Retrieving Constant with type " + type);
+                return (T) $(constants.values()).forEach(o -> type.isInstance(o) ? BreakWithResult(o) : null);
         }
 
         @SuppressWarnings("unchecked")
@@ -343,8 +346,9 @@ public abstract class IOCController extends Style {
         @SuppressWarnings("unchecked")
         public static <T> T retrieveVariable(String variable) {
                 MemberSup<?> m = variables.get(variable);
-                if (null == m)
+                if (null == m) {
                         throw new IOCException(new NullPointerException(variable));
+                }
                 if (m instanceof FieldSupport) {
                         FieldSupport<?, Object> f = (FieldSupport<?, Object>) m;
                         if (m.isStatic()) {
@@ -368,7 +372,7 @@ public abstract class IOCController extends Style {
          * Automatically register built-in handlers
          */
         public static void autoRegister() {
-                logger.debug("start auto registering...");
+                LOGGER.debug("start auto registering...");
                 register(new DefaultConstructorFilter());
                 register(new ConstructorDefaultFilter());
 
@@ -393,6 +397,6 @@ public abstract class IOCController extends Style {
                 setterAnnotationHandlers = readOnly(setterAnnotationHandlers);
                 constructorFilters = readOnly(constructorFilters);
                 typeAnnotationHandlers = readOnly(typeAnnotationHandlers);
-                logger.debug("registration closed.");
+                LOGGER.debug("registration closed.");
         }
 }

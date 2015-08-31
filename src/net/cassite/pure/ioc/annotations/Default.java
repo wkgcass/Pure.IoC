@@ -25,5 +25,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.TYPE, ElementType.CONSTRUCTOR })
 public @interface Default {
-        public Class<?>clazz() default Default.class;
+        @SuppressWarnings("rawtypes")
+        public Class clazz() default Default.class;
 }

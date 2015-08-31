@@ -22,7 +22,7 @@ import net.cassite.style.reflect.MethodSupport;
  */
 public class SetterIgnoreHandler implements SetterAnnotationHandler {
 
-        private static final Logger logger = Logger.getLogger(DefaultSetterHandler.class);
+        private static final Logger LOGGER = Logger.getLogger(DefaultSetterHandler.class);
 
         @Override
         public boolean canHandle(Set<Annotation> annotations) {
@@ -37,10 +37,11 @@ public class SetterIgnoreHandler implements SetterAnnotationHandler {
         @Override
         public boolean handle(Object target, MethodSupport<Object, Object> setter, Set<Annotation> toHandle, SetterHandlerChain chain)
                         throws AnnotationHandlingException {
-                logger.debug("Entered SetterIgnoreHandler with args: \n\ttarget:\t" + target + "\n\tsetter:\t" + setter + "\n\ttoHandle:\t" + toHandle
+                LOGGER.debug("Entered SetterIgnoreHandler with args: \n\ttarget:\t" + target + "\n\tsetter:\t" + setter + "\n\ttoHandle:\t" + toHandle
                                 + "\n\tchain:\t" + chain);
-                if (!chain.next().handle(target, setter, toHandle, chain))
-                        logger.debug("Start handling with SetterIgnoreHandler");
+                if (!chain.next().handle(target, setter, toHandle, chain)) {
+                        LOGGER.debug("Start handling with SetterIgnoreHandler");
+                }
                 return true;
 
         }

@@ -17,7 +17,8 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER })
 public @interface Use {
-        public Class<?>clazz() default Use.class;
+        @SuppressWarnings("rawtypes")
+        public Class clazz() default Use.class;
 
         public String constant() default "";
 
