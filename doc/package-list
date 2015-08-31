@@ -1,0 +1,7 @@
+net.cassite.pure.ioc
+net.cassite.pure.ioc.annotations
+net.cassite.pure.ioc.handlers
+net.cassite.pure.ioc.handlers.constructor
+net.cassite.pure.ioc.handlers.param
+net.cassite.pure.ioc.handlers.setter
+net.cassite.pure.ioc.handlers.type
